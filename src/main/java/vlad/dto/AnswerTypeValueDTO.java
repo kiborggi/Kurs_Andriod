@@ -26,11 +26,11 @@ public class AnswerTypeValueDTO {
     public static AnswerTypeValueDTO getAnswerTypeValueFromDTO(AnswerTypeValue answerTypeValue, TypeRepository typeRepository, AnswerRepository answerRepository){
 
         AnswerTypeValueDTO ret = new AnswerTypeValueDTO();
-        ret.setAnswerID(answerTypeValue.getAnswerID());
+        ret.setAnswerID(answerTypeValue.getAnswerId());
         ret.setValue(answerTypeValue.getValue());
         ret.setTypeID(answerTypeValue.getTypeId());
         ret.setTypeText(typeRepository.findById(answerTypeValue.getTypeId()).getText());
-        ret.setAnsewerText(answerRepository.findById(answerTypeValue.getAnswerID()).getText());
+        ret.setAnsewerText(answerRepository.findById(answerTypeValue.getAnswerId()).getText());
         return ret;
     }
 

@@ -2,6 +2,7 @@ package vlad.rest;
 
 import vlad.dto.*;
 import vlad.dto.FotAttempt.*;
+import vlad.model.Status;
 import vlad.model.Survey.*;
 import vlad.model.User;
 import vlad.repository.*;
@@ -13,10 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/api/v1/survey/")
@@ -35,6 +34,8 @@ public class SurveyRestControllerV1 {
     SurveyResultRepository surveyResultRepository;
     @Autowired
     AnswerRepository answerRepository;
+    @Autowired
+    UserRepository userRepository;
 
 
     @Autowired
@@ -65,6 +66,19 @@ public class SurveyRestControllerV1 {
 
         return new ResponseEntity<>(surveyToCreate, HttpStatus.CREATED);
     }
+    @PostMapping("/changeSurveyStatus/{id}")
+    public ResponseEntity<Survey> changeSurveyStatus(HttpServletRequest req,@PathVariable(name = "id") Long id){
+        Survey survey = surveyRepository.findSurveyById(id);
+        if (survey.getStatus().equals(Status.NOT_ACTIVE)) {
+            survey.setStatus(Status.ACTIVE);
+        }
+        else {
+            survey.setStatus(Status.NOT_ACTIVE);
+        }
+        surveyRepository.saveAndFlush(survey);
+        return new ResponseEntity<>(survey, HttpStatus.OK);
+    }
+
 
 
     @PostMapping("/createQuestion")
@@ -72,6 +86,7 @@ public class SurveyRestControllerV1 {
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
         User user = userService.findByUsername(username);
         long survOwnerId = surveyRepository.findSurveyById(questionDTO.getSurvetId()).getOwnerId();
+
         if(survOwnerId != user.getId()){
             return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
@@ -79,6 +94,13 @@ public class SurveyRestControllerV1 {
         }else{
             Question questionToCreate = QuestionDTO.questionFromDTO(questionDTO);
             questionRepository.saveAndFlush(questionToCreate);
+            if (questionDTO.getTypeOfQuestion().equals(TypeOfQuestionEnum.NUMERIC)){
+                Answer answer = new Answer();
+                answer.setText("answer_for_numeric");
+                answer.setQuestionId(questionToCreate.getId());
+                answerRepository.saveAndFlush(answer);
+                answerRepository.saveAndFlush(answer);
+            }
             return new ResponseEntity<>(questionToCreate, HttpStatus.CREATED);
         }
 
@@ -103,16 +125,24 @@ public class SurveyRestControllerV1 {
 
     @GetMapping("/getAllSurveys")
     public ResponseEntity getAllSurveys(){
+        ArrayList<SurveyForListDTO> ret = new ArrayList<SurveyForListDTO>();
+        for (Survey survey : surveyRepository.findAllByStatus(Status.ACTIVE)){
+            ret.add(new SurveyForListDTO(survey,questionRepository,attemptRepository,userRepository));
+        }
         return  ResponseEntity.status(HttpStatus.OK)
-                .body(surveyRepository.findAll());
+                .body(ret);
     }
     @GetMapping("/getAllSurveysOfUser")
     public ResponseEntity getAllSurveysOfUser(HttpServletRequest req){
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
         User user = userService.findByUsername(username);
         List<Survey> surveys = surveyRepository.findSurveyByOwnerId(user.getId());
+        ArrayList<SurveyForListDTO> ret = new ArrayList<SurveyForListDTO>();
+        for (Survey survey : surveyRepository.findAll()){
+            ret.add(new SurveyForListDTO(survey,questionRepository,attemptRepository,userRepository));
+        }
         return  ResponseEntity.status(HttpStatus.OK)
-                .body(surveys);
+                .body(ret);
     }
 
 
@@ -221,6 +251,8 @@ public class SurveyRestControllerV1 {
        Attempt attemptToStart = new Attempt();
        attemptToStart.setSurveyId(id);
        attemptToStart.setUserId(user.getId());
+       Date date = new Date();
+       attemptToStart.setCreated(date);
        Attempt savedAttempt = attemptRepository.saveAndFlush( attemptToStart);
        AttemptDTO attemptDTO = new AttemptDTO(savedAttempt);
        SurveyFotAttempt surveyFotAttempt = new SurveyFotAttempt(surveyRepository.findSurveyById(attemptDTO.getSurveyId()));
@@ -230,6 +262,9 @@ public class SurveyRestControllerV1 {
             QuestionForAttempt questionForAttempt = new QuestionForAttempt(question);
                 List<Answer> answerList = answerRepository.findAllByQuestionId(questionForAttempt.getId());
                 List<AnswerForAttempt> answerForAttemptList = new ArrayList<>();
+            questionForAttempt.setNumTo(question.getNumTo());
+            questionForAttempt.setNumFrom(question.getNumFrom());
+
                 for (Answer answer : answerList){
                     AnswerForAttempt answerForAttempt = new AnswerForAttempt(answer);
                     answerForAttemptList.add(answerForAttempt);
@@ -258,21 +293,34 @@ public class SurveyRestControllerV1 {
         Map<Long,Float> typeIdAndSumValues = new HashMap<Long,Float>();
 
         for(QuestionRespDTO item : questionForAttemptList){
+
             for(long answerId : item.getListAnswerId()){
                for(AnswerTypeValue answerTypeValue: answerTypeValueRepository.findAllByAnswerId(answerId)){
+                   System.out.println("answID" +  answerTypeValue.getAnswerId()  + " value " + answerTypeValue.getValue() +" num value " + item.getNumValue());
                    if(typeIdAndSumValues.get(answerTypeValue.getTypeId())==null){
-                       typeIdAndSumValues.put(answerTypeValue.getTypeId(),answerTypeValue.getValue());
+                       if(item.getTypeOfQuestion().equals(TypeOfQuestionEnum.NUMERIC)){
+                           typeIdAndSumValues.put(answerTypeValue.getTypeId(),answerTypeValue.getValue()*item.getNumValue());
+                       }else
+                           {
+                       typeIdAndSumValues.put(answerTypeValue.getTypeId(),answerTypeValue.getValue());}
+
                    }
                    else {
-                       float sum = typeIdAndSumValues.get(answerTypeValue.getTypeId());
-                       sum+=answerTypeValue.getValue();
-                       typeIdAndSumValues.replace(answerTypeValue.getTypeId(),sum);
-
+                       if(item.getTypeOfQuestion().equals(TypeOfQuestionEnum.NUMERIC)){
+                           float sum = typeIdAndSumValues.get(answerTypeValue.getTypeId());
+                           sum += answerTypeValue.getValue()*item.getNumValue();
+                           typeIdAndSumValues.replace(answerTypeValue.getTypeId(), sum);
+                       }else {
+                           float sum = typeIdAndSumValues.get(answerTypeValue.getTypeId());
+                           sum += answerTypeValue.getValue();
+                           typeIdAndSumValues.replace(answerTypeValue.getTypeId(), sum);
+                       }
                    }
                }
             }
         }
 
+        Attempt attempt = attemptRepository.findAllById(attemptRespDTO.getAttemptId());
         for(Map.Entry<Long,Float> item : typeIdAndSumValues.entrySet()){
             List<SurveyResult> surveyResultList = surveyResultRepository.findAllByTypeId(item.getKey());
 
@@ -284,9 +332,14 @@ public class SurveyRestControllerV1 {
 
             System.out.printf("Key: %s  Value: %s \n", item.getKey(), item.getValue());
         }
+        attempt.setStatus(Status.ENDED);
+        Date date = new Date();
+        attempt.setEnded(date);
+        attempt.setResultText(resultStr);
         TmpDTO tmpDTO = new TmpDTO();
         tmpDTO.setText(resultStr);
         System.out.println(resultStr);
+        attemptRepository.saveAndFlush(attempt);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(tmpDTO);
@@ -305,15 +358,30 @@ public class SurveyRestControllerV1 {
     public ResponseEntity getResultsOfSurvey(HttpServletRequest req, @PathVariable(name = "id") Long id){
         List <SurveyResult> surveyResultList = new ArrayList<>();
         surveyResultList = surveyResultRepository.findAllBySurveyId(id);
+        List<SurveyResultToSendDTO> surveyResultDTOList = new ArrayList<>();
+        for (SurveyResult surveyResult : surveyResultList){
+            surveyResultDTOList.add(new SurveyResultToSendDTO(surveyResult,typeRepository));
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(surveyResultList);
+                .body(surveyResultDTOList);
+    }
+
+    @GetMapping("getAttemptsOfSurvey/{id}")
+    public ResponseEntity getAttemptsOfSurvey(HttpServletRequest req, @PathVariable(name = "id") Long id){
+        String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
+        User user = userService.findByUsername(username);
+        List<Attempt> attemptArrayList =  attemptRepository.findAllBySurveyIdAndStatusAndUserId(id,Status.ENDED,user.getId());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(attemptArrayList);
     }
 
     @DeleteMapping ("/deleteSurvey/{id}")
     public ResponseEntity deleteSurvey(HttpServletRequest req,@PathVariable(name = "id") Long id){
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
         User user = userService.findByUsername(username);
+
         Survey surveyToDelete = surveyRepository.findSurveyById(id);
         if (surveyToDelete.getId() != user.getId()){
             return ResponseEntity

@@ -31,7 +31,15 @@ public class Attempt {
     private Status status;
 
     @Column (name = "result_text")
-    private Status resultText;
+    private String resultText;
+
+    public String getResultText() {
+        return resultText;
+    }
+
+    public void setResultText(String resultText) {
+        this.resultText = resultText;
+    }
 
     public Status getStatus() {
         return status;

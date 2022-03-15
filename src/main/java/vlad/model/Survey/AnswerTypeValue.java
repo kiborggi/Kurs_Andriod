@@ -19,13 +19,21 @@ public class AnswerTypeValue {
     @Column(name = "value")
     private float value;
 
+
+
+
+
+
+
+    public long getAnswerId() {
+        return answerId;
+    }
+
     public Long getId() {
         return id;
     }
 
-    public long getAnswerID() {
-        return answerId;
-    }
+
 
     public void setAnswerId(long answerId) {
         this.answerId = answerId;

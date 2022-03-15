@@ -129,6 +129,7 @@
         <column name="owner_id" type="bigint">
             <constraints nullable="false" />
         </column>
+            
 
             <column name="status" type="VARCHAR(25)" defaultValue="CREATED">
                 <constraints nullable="false" />
@@ -146,9 +147,21 @@
                 <constraints nullable="false" unique="false"/>
             </column>
 
+            <column name="type_of_question" type="VARCHAR(1000)" defaultValue="MUlTY">
+                <constraints nullable="false" unique="false"/>
+            </column>
+
             <column name="survey_id" type="bigint">
                 <constraints nullable="false"  />
             </column>
+
+            <column name="num_from" type="float">
+                <constraints nullable="true" unique="false"/>
+            </column>
+            <column name="num_to" type="float">
+                <constraints nullable="true" unique="false"/>
+            </column>
+
         </createTable>
     </changeSet>
     <changeSet id="1.0.8" author="vlad">
@@ -181,6 +194,9 @@
             <column name="text" type="VARCHAR(1000)">
                 <constraints nullable="false" unique="false"/>
             </column>
+
+
+
         </createTable>
 
 
@@ -210,6 +226,7 @@
             <column name="value" type="float">
                 <constraints nullable="false" unique="false"/>
             </column>
+
         </createTable>
     </changeSet>
     <changeSet id="1.1.1" author="vlad">
@@ -252,6 +269,9 @@
             <column name="question_id" type="BIGINT">
                 <constraints nullable="false" unique="false"/>
             </column>
+            <column name="num_value" type="BIGINT">
+                <constraints nullable="true" unique="false"/>
+            </column>
         </createTable>
 
         <createTable tableName="survey_result">
@@ -274,7 +294,48 @@
                 <constraints nullable="false" unique="false"/>
             </column>
         </createTable>
-
     </changeSet>
 
+    <changeSet id="1.1.2" author="vlad">
+
+    <createTable tableName="tag">
+        <column name="id" type="BIGINT" autoIncrement="true" >
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+
+        <column name="name" type="VARCHAR(1000)">
+            <constraints nullable="false" unique="false"/>
+        </column>
+    </createTable>
+
+        <createTable tableName="survey_tag">
+        <column name="id" type="BIGINT" autoIncrement="true" >
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+
+        <column name="survey_id" type="BIGINT">
+            <constraints nullable="false" unique="false"/>
+        </column>
+
+        <column name="tag_id" type="VARCHAR(1000)">
+            <constraints nullable="false" unique="false"/>
+        </column>
+        </createTable>
+
+
+    </changeSet>
+    <changeSet id="1.1.3" author="vlad">
+    <insert tableName="tag">
+        <column name="name" value="Спорт"/>
+    </insert>
+    <insert tableName="tag">
+        <column name="name" value="Весёлое"/>
+    </insert>
+    <insert tableName="tag">
+        <column name="name" value="Еда"/>
+    </insert>
+    <insert tableName="tag">
+        <column name="name" value="Машины"/>
+    </insert>
+    </changeSet>
 </databaseChangeLog>

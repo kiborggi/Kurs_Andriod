@@ -1,5 +1,7 @@
 package vlad.model.Survey;
 
+import org.springframework.lang.Nullable;
+
 import javax.persistence.*;
 
 @Entity
@@ -15,6 +17,40 @@ public class Question {
     @Column(name = "survey_id")
     private long surveyId;
 
+    @Column(name = "type_of_question")
+    private TypeOfQuestionEnum typeOfQuestion;
+
+    @Column(name = "num_from")
+
+    private float numFrom;
+
+    @Column(name = "num_to")
+    private float numTo;
+
+
+    public Float getNumFrom() {
+        return numFrom;
+    }
+
+    public void setNumFrom(float numFrom) {
+        this.numFrom = numFrom;
+    }
+
+    public Float getNumTo() {
+        return numTo;
+    }
+
+    public void setNumTo(float numTo) {
+        this.numTo = numTo;
+    }
+
+    public TypeOfQuestionEnum getTypeOfQuestion() {
+        return typeOfQuestion;
+    }
+
+    public void setTypeOfQuestion(TypeOfQuestionEnum typeOfQuestion) {
+        this.typeOfQuestion = typeOfQuestion;
+    }
 
     public Long getId() {
         return id;

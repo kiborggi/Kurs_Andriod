@@ -18,6 +18,18 @@ public class AttemptQuestionAnswer {
     @Column (name = "question_id")
     private  long questionId;
 
+    @Column (name = "num_value")
+    private  long numValue;
+
+
+    public long getNumValue() {
+        return numValue;
+    }
+
+    public void setNumValue(long numValue) {
+        this.numValue = numValue;
+    }
+
     public long getQuestionId() {
         return questionId;
     }

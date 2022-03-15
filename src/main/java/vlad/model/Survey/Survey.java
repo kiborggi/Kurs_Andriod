@@ -26,6 +26,13 @@ public class Survey  {
     @Column (name = "status")
     private Status status;
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
     public Survey(){
         this.status=Status.NOT_ACTIVE;
