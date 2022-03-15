@@ -8,5 +8,5 @@ package vlad.model;
  */
 
 public enum Status {
-    ACTIVE, NOT_ACTIVE, DELETED, CREATED,PUBLISHED,ENDED
+    ACTIVE, NOT_ACTIVE, CREATED,ENDED
 }
