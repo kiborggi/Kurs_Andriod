@@ -1,5 +1,7 @@
 package vlad.rest;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
 import vlad.dto.UserDto;
 import vlad.model.User;
 import vlad.security.jwt.JwtTokenProvider;
@@ -25,6 +27,9 @@ public class UserRestControllerV1 {
     @Autowired
     public JwtTokenProvider jwtTokenProvider;
 
+
+    @ApiOperation(value = "Получить сведения о пользователе", notes = "Получить сведения о пользователе в соответствии с идентификатором URL-адреса")
+    @ApiImplicitParam(name = "id", value = "User ID", required = true, dataType = "Integer", paramType = "path")
     @GetMapping(value = "{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable(name = "id") Long id){
         User user = userService.findById(id);
@@ -37,6 +42,8 @@ public class UserRestControllerV1 {
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+    @ApiOperation(value = "Получить сведения о пользователе", notes = "Получить сведения о авторизованном пользователе")
+
     @GetMapping("/me")
     public ResponseEntity<UserDto> getLoggedUser(HttpServletRequest req){
 

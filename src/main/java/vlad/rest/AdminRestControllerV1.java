@@ -1,5 +1,6 @@
 package vlad.rest;
 
+import springfox.documentation.annotations.ApiIgnore;
 import vlad.dto.AdminUserDto;
 import vlad.model.User;
 import vlad.service.UserService;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-
+@ApiIgnore
 @RestController
 @RequestMapping(value = "/api/v1/admin/")
 public class AdminRestControllerV1 {

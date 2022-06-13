@@ -1,5 +1,7 @@
 package vlad.rest;
 
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
 import vlad.dto.*;
 import vlad.dto.FotAttempt.*;
 import vlad.model.Status;
@@ -47,13 +49,17 @@ public class SurveyRestControllerV1 {
         this.userService = userService;
     }
 
+
+    @ApiOperation(value = "Получить опрос", notes = "Получить опрос по его Id")
+    @ApiImplicitParam(name = "id", value = "Survey  ID", required = true, dataType = "Integer", paramType = "path")
     @GetMapping("/getSurvey/{id}")
     public ResponseEntity<Survey> getSurvey(HttpServletRequest req,@PathVariable(name = "id") Long id){
         Survey res =  surveyRepository.findSurveyById(id);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-
+    @ApiOperation(value = "Создать опрос", notes = "")
+    @ApiImplicitParam(name = "SurveyDTO", value = "Survey DTO", required = true, dataType = "Integer", paramType = "path")
     @PostMapping("/createSurvey")
     public ResponseEntity<Survey> createSurvey(@RequestBody SurveyDTO surveyDTO,HttpServletRequest req){
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
@@ -66,6 +72,9 @@ public class SurveyRestControllerV1 {
 
         return new ResponseEntity<>(surveyToCreate, HttpStatus.CREATED);
     }
+
+    @ApiOperation(value = "Изменить статус опроса", notes = "Изменить статус опроса по его id")
+    @ApiImplicitParam(name = "id", value = "Survey  ID", required = true, dataType = "Integer", paramType = "path")
     @PostMapping("/changeSurveyStatus/{id}")
     public ResponseEntity<Survey> changeSurveyStatus(HttpServletRequest req,@PathVariable(name = "id") Long id){
         Survey survey = surveyRepository.findSurveyById(id);
@@ -80,7 +89,7 @@ public class SurveyRestControllerV1 {
     }
 
 
-
+    @ApiOperation(value = "Создать вопрос", notes = "")
     @PostMapping("/createQuestion")
     public ResponseEntity  createQuestion(@RequestBody QuestionDTO questionDTO, HttpServletRequest req){
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
@@ -105,6 +114,8 @@ public class SurveyRestControllerV1 {
         }
 
     }
+    @ApiOperation(value = "Получить все вопросы опроса по его id", notes = "")
+    @ApiImplicitParam(name = "id", value = "Survey  ID", required = true, dataType = "Integer", paramType = "path")
     @GetMapping("/getQuestionsOfSurvey/{id}")
     public ResponseEntity getAllSurveys(HttpServletRequest req,@PathVariable(name = "id") Long id){
         ArrayList<Question> questions = (ArrayList<Question>) questionRepository.findQuestionsBySurveyId(id);
@@ -117,12 +128,14 @@ public class SurveyRestControllerV1 {
         return  ResponseEntity.status(HttpStatus.OK)
                 .body(questionWithNuberOfAnswersDTOArrayList);
     }
+
+    @ApiOperation(value = "Получить все вопрос по его id", notes = "")
     @GetMapping("/getQuestion/{id}")
     public ResponseEntity<Question> getQuestion(HttpServletRequest req,@PathVariable(name = "id") Long id){
         Question res =  questionRepository.findQuestionsById(id);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-
+    @ApiOperation(value = "Получить все опросы со статусом ACTIVE", notes = "")
     @GetMapping("/getAllSurveys")
     public ResponseEntity getAllSurveys(){
         ArrayList<SurveyForListDTO> ret = new ArrayList<SurveyForListDTO>();
@@ -132,6 +145,8 @@ public class SurveyRestControllerV1 {
         return  ResponseEntity.status(HttpStatus.OK)
                 .body(ret);
     }
+
+    @ApiOperation(value = "Получить все опросы со статусом пользователя", notes = "")
     @GetMapping("/getAllSurveysOfUser")
     public ResponseEntity getAllSurveysOfUser(HttpServletRequest req){
         String username = jwtTokenProvider.getUsername(jwtTokenProvider.resolveToken(req));
