@@ -5,4 +5,5 @@ import vlad.model.Survey.AttemptQuestionAnswer;
 
 public interface AttemptQuestionAnswerRepository extends JpaRepository<AttemptQuestionAnswer, Long> {
     AttemptQuestionAnswer findById(long id);
+
 }

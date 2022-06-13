@@ -14,20 +14,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 import vlad.dto.AuthenticationRequestDto;
-import vlad.model.rewiew.Ranswer;
-import vlad.model.rewiew.RewiewSession;
-import vlad.model.rewiew.Rquestion;
-import vlad.repository.RAnswerRepository;
-import vlad.repository.RQuestionRepository;
-import vlad.repository.RewiewRepository;
-import vlad.repository.SurveyRepository;
+import vlad.model.Status;
+import vlad.model.Survey.Answer;
+import vlad.model.Survey.Question;
+import vlad.model.Survey.Survey;
+import vlad.model.rewiew.*;
+
+import vlad.repository.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 
 @Controller
@@ -35,15 +33,24 @@ import java.util.Map;
 public class WebController {
 
     @Autowired
-    RewiewRepository rewiewRepository;
+    SurveyRepository surveyRepository;
     @Autowired
-    RQuestionRepository rQuestionRepository;
+    QuestionRepository questionRepository;
     @Autowired
-    RAnswerRepository rAnswerRepository;
+    RattemptQuestionAnswerRepository rattemptQuestionAnswerRepository;
+    @Autowired
+    TypeRepository typeRepository;
+    @Autowired
+    RattemptRepository rattemptRepository;
+    @Autowired
+    AnswerRepository answerRepository;
+
+
+
 
     @RequestMapping(value = "/rewiew/{rewId}", method = RequestMethod.GET)
-    public RedirectView rewiew(Model model, @PathVariable("rewId") int rewId, HttpServletRequest req) {
-        if (rewiewRepository.findById(rewId) != null) {
+    public RedirectView rewiew(Model model, @PathVariable("rewId") long rewId, HttpServletRequest req) {
+        if (surveyRepository.findById(rewId) != null) {
 
             if (req.getSession().getAttribute("rewiewSessionList") == null) {
                 req
@@ -57,7 +64,7 @@ public class WebController {
             for (RewiewSession rewiewSession1 : rewiewSessionList) {
                 if (rewiewSession1.getRewId() == rewId) {
                     rewiewSession = rewiewSession1;
-                    return new RedirectView("web/rewiew/" + rewId);
+                   // return new RedirectView("/web/rewiew/" + rewId);
 
                 }
             }
@@ -66,23 +73,25 @@ public class WebController {
                 rewiewSession = new RewiewSession();
                 rewiewSession.setRewId(rewId);
                 rewiewSessionList.add(rewiewSession);
-                return new RedirectView("/web/startRewiew" );
+                return new RedirectView("/web/startRewiew/" + rewId );
 
+            }
+            else{
+                return new RedirectView("/web/proccesReview/" + rewId );
             }
 
 
-        } else {
+        }
+        else {
             return new RedirectView("web/error/");
         }
-        return new RedirectView("web/error/");
     }
 
 
 
 
     @RequestMapping(value = "/startRewiew/{rewId}", method = RequestMethod.GET)
-    public RedirectView startRewiew(Model model,
-                              @RequestParam(value = "name" , required = false) String name ,
+    public String startRewiew(Model model,
                               HttpServletRequest req,
                               @PathVariable("rewId") int rewId) {
 
@@ -94,37 +103,205 @@ public class WebController {
                 rewiewSession = rewiewSession1;
             }
         }
-        rewiewSession.setName(name);
-        rewiewSession.setRquestionIterator(rQuestionRepository.findAllByRewievId(rewId).iterator());
-        System.out.println("kikck");
+        rewiewSession.setRquestionIterator(questionRepository.findQuestionsBySurveyId(rewId).iterator());
+        Iterator<Question> questionIterator = rewiewSession.getRquestionIterator();
+        if(questionIterator.hasNext()){
+            rewiewSession.setCurrentQuestion( questionIterator.next());
+            return "greeting";
+        }
 
-        return new RedirectView("/web/proccesReview");
+
+        return "error";
     }
 
-    @RequestMapping(value = "/proccesReview", method = RequestMethod.POST)
-    public String rewiewPost(Model model,@RequestParam(value = "ids" , required = false) int[] ids) {
-        System.out.println("2");
-        System.out.println(ids.length);
-        List<Ranswer> rAnswerList = new ArrayList<>();
-        Ranswer an1 = new Ranswer();
-        an1.setText("Answer1");
-        an1.setId(1l);
+    @RequestMapping(value = "/processeFormStart", method = RequestMethod.POST)
+    public RedirectView processeForm(Model model,@RequestParam(value = "name" ) String name,
+                                     HttpServletRequest req,
+                                     @RequestParam("rewId") String rewIdStr){
+        ArrayList<RewiewSession> rewiewSessionList = (ArrayList<RewiewSession>) req.getSession().getAttribute("rewiewSessionList");
+        long rewId = Long.parseLong(rewIdStr);
+        RewiewSession rewiewSession = null;
+        System.out.println(name);
+        System.out.println(rewId);
+        for (RewiewSession rewiewSession1 : rewiewSessionList) {
+            if (rewiewSession1.getRewId() == rewId) {
+                rewiewSession = rewiewSession1;
+            }
+        }
 
-        Ranswer an2 = new Ranswer();
-        an2.setText("Answer2");
-        an2.setId(2l);
-        rAnswerList.add(an1);
-        rAnswerList.add(an2);
+        rewiewSession.setName(name);
 
-        model.addAttribute("answers",rAnswerList);
+        Rattempt rattempt = new Rattempt();
 
-        model.addAttribute("name","vlad");
-        return "greeting";
+        rattempt.setUserName(name);
+        rattempt.setCreated( new Date());
+        rattempt.setSurveyId(rewId);
+        rattempt.setStatus(Status.CREATED);
+        rewiewSession.setRattempt(rattempt);
+        rattemptRepository.saveAndFlush(rattempt);
+
+        rewiewSession.setRattemptQuestionAnswerList(new ArrayList<RattemptQuestionAnswer>());
+
+        return new RedirectView("/web/proccesReview/" + rewId);
+    }
+
+
+    @RequestMapping(value = "/proccesReview/{rewId}", method = RequestMethod.GET)
+    public String rewiewPost(Model model,
+                                   HttpServletRequest req,
+                                   @PathVariable("rewId") long rewId) {
+
+        ArrayList<RewiewSession> rewiewSessionList = (ArrayList<RewiewSession>) req.getSession().getAttribute("rewiewSessionList");
+
+        RewiewSession rewiewSession = null;
+
+        for (RewiewSession rewiewSession1 : rewiewSessionList) {
+            if (rewiewSession1.getRewId() == rewId) {
+                rewiewSession = rewiewSession1;
+            }
+        }
+        if (rewiewSession != null) {
+
+            Question currentQuestion = null;
+            Iterator<Question> questionIterator = rewiewSession.getRquestionIterator();
+
+                currentQuestion = rewiewSession.getCurrentQuestion();
+
+                ArrayList<Answer> answers = (ArrayList<Answer>) answerRepository.findAllByQuestionId(currentQuestion.getId());
+
+                model.addAttribute("answers",answers);
+                model.addAttribute("rewId",rewId);
+                model.addAttribute("questionType",currentQuestion.getTypeOfQuestion().toString());
+
+                if (rewiewSession.getStatus().equals(Status.ENDED.toString())){
+                    return "error";
+                }
+                else{
+                    return "rewiewForm";
+                }
+
+        }
+        else {
+            return "error";
+        }
+    }
+
+    @RequestMapping(value = "/processeFormRewiew", method = RequestMethod.POST)
+    public RedirectView processeFormRewiew(Model model,@RequestParam(value = "ids" , required = false) long[] ids,
+                                     HttpServletRequest req, @RequestParam("rewId") String rewIdStr){
+        ArrayList<RewiewSession> rewiewSessionList = (ArrayList<RewiewSession>) req.getSession().getAttribute("rewiewSessionList");
+
+        RewiewSession rewiewSession = null;
+        long rewId = Long.parseLong(rewIdStr);
+        for (RewiewSession rewiewSession1 : rewiewSessionList) {
+            if (rewiewSession1.getRewId() == rewId) {
+                rewiewSession = rewiewSession1;
+            }
+        }
+        if (rewiewSession != null) {
+
+
+            Iterator<Question> questionIterator = rewiewSession.getRquestionIterator();
+
+            if (ids != null) {
+                for (long i : ids){
+
+                    RattemptQuestionAnswer rattemptQuestionAnswer = new RattemptQuestionAnswer();
+
+                    rattemptQuestionAnswer.setQuestionId(rewiewSession.getCurrentQuestion().getId());
+                    rattemptQuestionAnswer.setAnswerId(i);
+                    rattemptQuestionAnswer.setAttemptId(rewiewSession.getRattempt().getId());
+
+                    rattemptQuestionAnswerRepository.saveAndFlush(rattemptQuestionAnswer);
+
+                }
+
+
+            }
+            if (questionIterator.hasNext()){
+                rewiewSession.setCurrentQuestion(questionIterator.next());
+            }
+            else{
+
+                rewiewSession.setStatus(Status.ENDED.toString());
+                return new RedirectView("/web/rewiewResults/" + rewId);
+
+            }
+
+
+
+
+
+            return new RedirectView("/web/proccesReview/" + rewId);
+        }
+        else {
+            return new RedirectView("web/error/");
+        }
     }
 
     @RequestMapping(value = "/error", method = RequestMethod.GET)
     public String error(Model model, @PathVariable("rewId") int rewId, HttpServletRequest req) {
         return "error";
     }
+
+    @RequestMapping(value = "/rewiewResults/{rewId}", method = RequestMethod.GET)
+    public String rewiewResults(Model model, @PathVariable("rewId") int rewId, HttpServletRequest req) {
+        Survey survey = surveyRepository.findSurveyById(rewId);
+
+        RewiewToDisplay rewiewToDisplay = new RewiewToDisplay();
+
+        rewiewToDisplay.setName(survey.getName());
+        rewiewToDisplay.setDescription(survey.getDescription());
+
+
+
+        for (Question question : questionRepository.findQuestionsBySurveyId(rewId) ){
+            QuestionToDisplay questionToDisplay = new QuestionToDisplay();
+            questionToDisplay.setText(question.getText());
+
+            int questionVotes = 0;
+
+
+            for (Answer answer : answerRepository.findAllByQuestionId(question.getId())) {
+
+                AnswerToDislpay answerToDislpay = new AnswerToDislpay();
+                answerToDislpay.setText(answer.getText());
+
+                int answerVotes = 0;
+
+                for (RattemptQuestionAnswer rattemptQuestionAnswer : rattemptQuestionAnswerRepository.findAllByAnswerId(answer.getId())) {
+                    answerVotes +=1;
+
+                   answerToDislpay.getPeople().add( rattemptRepository.findById(rattemptQuestionAnswer.getAttemptId()).getUserName() );
+
+                }
+
+                answerToDislpay.setVotes( answerVotes);
+                questionVotes += answerVotes;
+                questionToDisplay.getAnswerToDislpayList().add(answerToDislpay);
+
+            }
+            questionToDisplay.setVotes(questionVotes);
+
+
+
+            rewiewToDisplay.getQuestionToDisplayList().add(questionToDisplay);
+
+        }
+
+
+        for (QuestionToDisplay question : rewiewToDisplay.getQuestionToDisplayList()){
+            for (AnswerToDislpay answer : question.getAnswerToDislpayList()){
+                answer.setPercent(  (answer.getVotes()*1.0 / question.getVotes()*1.0 * 100));
+            }
+        }
+
+        model.addAttribute("rewiew",rewiewToDisplay);
+
+
+
+        return "rewiewResults";
+    }
+
 
 }

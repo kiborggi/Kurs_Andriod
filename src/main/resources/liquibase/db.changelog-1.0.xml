@@ -404,4 +404,54 @@
     </changeSet>
 
 
+    <changeSet id="1.1.5" author="vlad">
+        <createTable tableName="rattempt">
+            <column name="id" type="BIGINT" autoIncrement="true" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="survey_id" type="BIGINT">
+                <constraints nullable="false" unique="false"/>
+            </column>
+
+            <column name="started" type="DATETIME" defaultValue="GETDATE()">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="ended" type="DATETIME" defaultValue="null">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="status" type="VARCHAR(25)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
+
+
+            <column name="user_name" type="VARCHAR(2500)" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="rattempt_question_answer">
+            <column name="id" type="BIGINT" autoIncrement="true" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="attempt_id" type="BIGINT">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="answer_id" type="BIGINT">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="question_id" type="BIGINT">
+                <constraints nullable="false" unique="false"/>
+            </column>
+            <column name="num_value" type="BIGINT">
+                <constraints nullable="true" unique="false"/>
+            </column>
+        </createTable>
+
+
+    </changeSet>
+
+
 </databaseChangeLog>
