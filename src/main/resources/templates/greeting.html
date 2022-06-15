@@ -8,12 +8,28 @@
 </head>
 <body>
 
+<div class="container-fluid"  style="border: darkslategray;   padding: 10px;">
+    <div class="row ">
 
-<form action="#" th:action="@{/web/processeFormStart}"  method="post">
-   <input type="hidden" name="rewId" th:value="${rewId}" hidden="hidden">
-    <input type="text" name="name">
-    <input type="submit" value="Submit" />
-</form>
+        <div  class="col-md-2" style="height:410px;">
+        </div>
+
+        <div  class="col-md-10" style="height:410px;">
+            <H2 th:text="${revName}"></H2>
+            <H4 th:text="${revName}"></H4>
+
+            <br>
+            <h6> Для того что бы пройти опрос представтесь</h6>
+            <form action="#" th:action="@{/web/processeFormStart}"  method="post">
+               <input type="hidden" name="rewId" th:value="${rewId}" hidden="hidden">
+                <input type="text" name="name" placeholder="Имя">
+                <input type="submit" class="btn btn-primary" value="Пройти опрос" />
+            </form>
+        </div>
+
+        <div  class="col-md-2" style="height:410px;">
+        </div>
+</div>
 
 <!--<form action="#" th:action="@{/web/rewiewRecive}"  method="post">
 <th:block th:each="rAnswer : ${answers}" >

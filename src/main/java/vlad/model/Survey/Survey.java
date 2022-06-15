@@ -22,9 +22,21 @@ public class Survey  {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "type")
+    private String type;
+
     @Enumerated(EnumType.STRING)
     @Column (name = "status")
     private Status status;
+
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public Status getStatus() {
         return status;

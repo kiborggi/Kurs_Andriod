@@ -9,37 +9,41 @@
 <body>
 
 
-<form action="#" th:action="@{/web/processeFormRewiew}"  method="post">
-    <input type="hidden" name="rewId" th:value="${rewId}" hidden="hidden">
+<div class="container-fluid"  style="border: darkslategray;   padding: 10px;">
+<div class="row ">
+    <div  class="col-md-2" style="height:410px;">
+    </div>
 
-<th:block th:each="rAnswer : ${answers}" >
+    <div  class="col-md-10" style="height:410px;">
 
-    <span  th:if="${questionType} == 'SINGLE'">
-        <div class="form-check">
-            <input class="form-check-input"  name="ids" type="radio" th:value="${rAnswer.id}" id="flexCheckDefault">
-            <label class="form-check-label" for="flexCheckDefault" th:text="${rAnswer.text}">
-            </label>
-        </div>
-    </span>
+        <form action="#" th:action="@{/web/processeFormRewiew}"  method="post">
+            <input type="hidden" name="rewId" th:value="${rewId}" hidden="hidden">
 
+            <h5 th:text ="${qestionText}"> </h5>
+        <th:block th:each="rAnswer : ${answers}" >
 
-    <span  th:if="${questionType} == 'MUlTY'">
-        <div class="form-check">
-            <input class="form-check-input" name="ids" type="checkbox" th:value="${rAnswer.id}" id="flexCheckDefault">
-            <label class="form-check-label" for="flexCheckDefault" th:text="${rAnswer.text}">
-            </label>
-        </div>
-    </span>
+            <span  th:if="${questionType} == 'SINGLE'">
+                <div class="form-check">
+                    <input class="form-check-input"  name="ids" type="radio" th:value="${rAnswer.id}" id="flexCheckDefault">
+                    <label class="form-check-label" for="flexCheckDefault" th:text="${rAnswer.text}">
+                    </label>
+                </div>
+            </span>
 
+            <span  th:if="${questionType} == 'MUlTY'">
+                <div class="form-check">
+                    <input class="form-check-input" name="ids" type="checkbox" th:value="${rAnswer.id}" id="flexCheckDefault">
+                    <label class="form-check-label" for="flexCheckDefault" th:text="${rAnswer.text}">
+                    </label>
+                </div>
+            </span>
+        </th:block>
+            <input class="btn btn-primary" type="submit" value="Submit" />
+        </form>
+    </div>
 
-</th:block>
-    <input type="submit" value="Submit" />
-</form>
-
-
-
-
-
+    <div  class="col-md-2" style="height:410px;">
+    </div>
 
 </body>
 </html>

@@ -68,6 +68,8 @@ public class SurveyRestControllerV1 {
         Survey surveyToCreate = SurveyDTO.getSurveuFromDTO(surveyDTO,user.getId());
 
 
+        System.out.println(surveyToCreate.getType());
+
         surveyRepository.saveAndFlush(surveyToCreate);
 
         return new ResponseEntity<>(surveyToCreate, HttpStatus.CREATED);
@@ -140,7 +142,9 @@ public class SurveyRestControllerV1 {
     public ResponseEntity getAllSurveys(){
         ArrayList<SurveyForListDTO> ret = new ArrayList<SurveyForListDTO>();
         for (Survey survey : surveyRepository.findAllByStatus(Status.ACTIVE)){
-            ret.add(new SurveyForListDTO(survey,questionRepository,attemptRepository,userRepository));
+            if (survey.getType().equals("TEST")) {
+                ret.add(new SurveyForListDTO(survey, questionRepository, attemptRepository, userRepository));
+            }
         }
         return  ResponseEntity.status(HttpStatus.OK)
                 .body(ret);

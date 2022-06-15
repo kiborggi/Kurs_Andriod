@@ -107,7 +107,16 @@ public class WebController {
         Iterator<Question> questionIterator = rewiewSession.getRquestionIterator();
         if(questionIterator.hasNext()){
             rewiewSession.setCurrentQuestion( questionIterator.next());
+
+            model.addAttribute("revName",surveyRepository.findSurveyById(rewId).getName());
+            model.addAttribute("revDesc",surveyRepository.findSurveyById(rewId).getDescription());
             return "greeting";
+        }
+        else{
+            if (rewiewSession.getStatus().equals(Status.ENDED.toString())){
+                model.addAttribute("rewId",rewId);
+                return "passed";
+            }
         }
 
 
@@ -172,9 +181,11 @@ public class WebController {
                 model.addAttribute("answers",answers);
                 model.addAttribute("rewId",rewId);
                 model.addAttribute("questionType",currentQuestion.getTypeOfQuestion().toString());
+                model.addAttribute("qestionText",currentQuestion.getText());
 
                 if (rewiewSession.getStatus().equals(Status.ENDED.toString())){
-                    return "error";
+                    model.addAttribute("rewId",rewId);
+                    return "passed";
                 }
                 else{
                     return "rewiewForm";

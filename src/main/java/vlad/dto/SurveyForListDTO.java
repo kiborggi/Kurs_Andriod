@@ -19,6 +19,7 @@ public class SurveyForListDTO {
     public long numberOfAttempts;
     public long numberOfQuestions;
     private Status status;
+    private String type;
 
     public SurveyForListDTO(Survey survey, QuestionRepository questionRepository, AttemptRepository attemptRepository, UserRepository userRepository){
         this.id = survey.getId();
@@ -28,6 +29,15 @@ public class SurveyForListDTO {
         this.numberOfAttempts = attemptRepository.findAllBySurveyIdAndStatus(survey.getId(), Status.ENDED).size();
         this.numberOfQuestions = questionRepository.findQuestionsBySurveyId(survey.getId()).size();
         this.status = survey.getStatus();
+        this.type = survey.getType();
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Status getStatus() {

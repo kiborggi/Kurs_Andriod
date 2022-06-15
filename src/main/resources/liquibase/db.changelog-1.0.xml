@@ -122,6 +122,10 @@
             <constraints nullable="false" unique="false"/>
         </column>
 
+            <column name="type" type="VARCHAR(1000)">
+                <constraints nullable="false" unique="false"/>
+            </column>
+
         <column name="description" type="VARCHAR(2550)">
             <constraints nullable="false" unique="false"/>
         </column>
@@ -295,7 +299,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="1.1.2" author="vlad">
+    <!--<changeSet id="1.1.2" author="vlad">
 
     <createTable tableName="tag">
         <column name="id" type="BIGINT" autoIncrement="true" >
@@ -337,9 +341,9 @@
         <column name="name" value="Машины"/>
     </insert>
     </changeSet>
+-->
 
-
-    <changeSet id="1.1.4" author="vlad">
+   <!-- <changeSet id="1.1.4" author="vlad">
         <createTable tableName="rewiew">
             <column name="id" type="BIGINT" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
@@ -401,7 +405,7 @@
             </column>
 
         </createTable>
-    </changeSet>
+    </changeSet>-->
 
 
     <changeSet id="1.1.5" author="vlad">
@@ -449,9 +453,120 @@
                 <constraints nullable="true" unique="false"/>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="1.2.0" author="vlad">
+    <addForeignKeyConstraint baseColumnNames="survey_id"
+                             baseTableName="type"
+                             constraintName="fk_type_survey"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             referencedColumnNames="id"
+                             referencedTableName="survey"/>
+    </changeSet>
+
+    <changeSet id="1.2.1" author="vlad">
+
+        <addForeignKeyConstraint baseColumnNames="attempt_id"
+                                 baseTableName="attempt_question_answer"
+                                 constraintName="fk_attempt_question_answer_attempt_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="attempt"/>
+
+        <addForeignKeyConstraint baseColumnNames="answer_id"
+                                 baseTableName="attempt_question_answer"
+                                 constraintName="fk_attempt_question_answer_answer_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="answer"/>
+        <addForeignKeyConstraint baseColumnNames="question_id"
+                                 baseTableName="attempt_question_answer"
+                                 constraintName="fk_attempt_question_answer_question_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="question"/>
+
+    </changeSet>
+
+    <changeSet id="1.2.2" author="vlad">
+
+        <addForeignKeyConstraint baseColumnNames="answer_id"
+                                 baseTableName="answer_type_value"
+                                 constraintName="fk_answer_type_value_answer_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="answer"/>
+
+        <addForeignKeyConstraint baseColumnNames="type_id"
+                                 baseTableName="answer_type_value"
+                                 constraintName="fk_answer_type_value_type_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="type"/>
+
 
 
     </changeSet>
 
+    <changeSet id="1.2.3" author="vlad">
+
+        <addForeignKeyConstraint baseColumnNames="attempt_id"
+                                 baseTableName="rattempt_question_answer"
+                                 constraintName="fk_rattempt_question_answer_rattempt_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="rattempt"/>
+
+        <addForeignKeyConstraint baseColumnNames="answer_id"
+                                 baseTableName="rattempt_question_answer"
+                                 constraintName="fk_rattempt_question_answer_answer_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="answer"/>
+
+    </changeSet>
+    <changeSet id="1.2.3.1" author="vlad">
+
+        <addForeignKeyConstraint baseColumnNames="question_id"
+                                 baseTableName="rattempt_question_answer"
+                                 constraintName="fk_rattempt_question_answer_question_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="question"/>
+
+
+
+    </changeSet>
+
+    <changeSet id="1.2.4" author="vlad">
+
+        <addForeignKeyConstraint baseColumnNames="type_id"
+                                 baseTableName="survey_result"
+                                 constraintName="fk_survey_result_type_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="type"/>
+
+        <addForeignKeyConstraint baseColumnNames="survey_id"
+                                 baseTableName="survey_result"
+                                 constraintName="fk_survey_result_survey_id"
+                                 onDelete="NO ACTION"
+                                 onUpdate="NO ACTION"
+                                 referencedColumnNames="id"
+                                 referencedTableName="survey"/>
+
+
+
+    </changeSet>
 
 </databaseChangeLog>

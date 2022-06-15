@@ -10,6 +10,7 @@ public class SurveyDTO {
 
     private String description;
     private String name;
+    private String type;
 
 
     public static Survey getSurveuFromDTO(SurveyDTO surveyDTO, long ownerId){
@@ -17,6 +18,7 @@ public class SurveyDTO {
         ret.setDescription(surveyDTO.getDescription());
         ret.setName(surveyDTO.getName());
         ret.setOwnerId(ownerId);
+        ret.setType(surveyDTO.getType());
         return  ret;
     }
 
